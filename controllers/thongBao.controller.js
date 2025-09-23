@@ -1,19 +1,20 @@
-import prisma from "../models/primsa.model.js";
+import prisma from "../models/primsa.model";
 
-//Lây tất cả bài viết
-export const getAllBaiViet = async (req, res) => {
+//Lây tất cả thông báo
+export const getAllThongBao = async (req, res) => {
     try {
-        const data = await prisma.baiviet.findMany();
+        const data = await prisma.thongbao.findMany();
         return res.status(200).json({ mess: "Thành Công", data: data });
     } catch (error) {
         res.status(500).json({ mess: "Thất Bại !!!", error: error.message });
     }
 };
-// Lấy bài viết theo ID
-export const getBaiVietById = async (req, res) => {
+
+// Lấy thông báo theo ID
+export const getThongBaoById = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await prisma.baiviet.findUnique({
+        const data = await prisma.thongbao.findUnique({
             where: {
                 id: parseInt(id)
             }
@@ -24,121 +25,104 @@ export const getBaiVietById = async (req, res) => {
     }
 }
 
-export const createBaiViet = async (req, res) => {
+// Tạo thông báo mới
+export const createThongBao = async (req, res) => {
     try {
-        const { tenBaiViet, moTa, noiDung, tacGia } = req.body;
-
+        const { denNguoiDung, tieuDe, noiDung, ngayGui } = req.body;
         // Kiểm tra dữ liệu đầu vào
-        if (!tenBaiViet || !noiDung || !tacGia) {
+        if (!denNguoiDung || !tieuDe || !noiDung) {
             return res.status(400).json({ mess: "Thiếu dữ liệu đầu vào" });
         }
-
         // Kiểm tra tiêu đề đã tồn tại chưa (dùng findFirst thay vì findUnique)
-        const existingBaiViet = await prisma.baiviet.findFirst({
-            where: { tenBaiViet: tenBaiViet }
+        const existingThongBao = await prisma.thongbao.findFirst({
+            where: { tieuDe: tieuDe }
         });
-
         // Nếu tiêu đề đã tồn tại, trả về lỗi
-        if (existingBaiViet) {
+        if (existingThongBao) {
             return res.status(409).json({ mess: "Tiêu đề đã tồn tại" });
         }
-
-        // Tạo bài viết mới
-        const data = await prisma.baiviet.create({
+        // Tạo thông báo mới
+        const data = await prisma.thongbao.create({
             data: {
-                tenBaiViet,
-                moTa,
+                denNguoiDung,
+                tieuDe,
                 noiDung,
-                tacGia
+                ngayGui
             }
         });
-
-        return res.status(201).json({ mess: "Tạo bài viết thành công", data: data });
+        return res.status(201).json({ mess: "Tạo thông báo thành công", data: data });
     } catch (error) {
         return res.status(500).json({ mess: "Thất Bại !!!", error: error.message });
     }
 };
 
-//Update bài viết
-export const updateBaiViet = async (req, res) => {
+// Cập nhật thông báo
+export const updateThongBao = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tenBaiViet, moTa, noiDung, tacGia } = req.body;
-
-        // Ép kiểu ID sang số
-        const baiVietId = Number(id);
-
-        if (isNaN(baiVietId)) {
-            return res.status(400).json({ mess: "ID không hợp lệ" });
-        }
-
+        const { denNguoiDung, tieuDe, noiDung, ngayGui } = req.body;
+        const baiVietId = parseInt(id);
         // Kiểm tra dữ liệu đầu vào
-        if (!tenBaiViet || !noiDung || !tacGia) {
+        if (!denNguoiDung || !tieuDe || !noiDung) {
             return res.status(400).json({ mess: "Thiếu dữ liệu đầu vào" });
         }
-
         // Kiểm tra bài viết có tồn tại không
         const existingBaiViet = await prisma.baiviet.findFirst({
             where: { id: baiVietId }
         });
-
         if (!existingBaiViet) {
             return res.status(404).json({ mess: "Bài viết không tồn tại" });
         }
-
         // Cập nhật bài viết
         const data = await prisma.baiviet.update({
             where: { id: baiVietId },
             data: {
-                tenBaiViet,
-                moTa,
+                denNguoiDung,
+                tieuDe,
                 noiDung,
-                tacGia,
-                ngayCapNhat: new Date() // cập nhật thời gian nếu muốn
+                ngayGui
             }
         });
-
-        return res.status(200).json({ mess: "Cập nhật thành công", data });
+        return res.status(200).json({ mess: "Cập nhật bài viết thành công", data: data });
     } catch (error) {
-        return res.status(500).json({ mess: "Thất bại !!!", error: error.message });
+        return res.status(500).json({ mess: "Thất Bại !!!", error: error.message });
     }
 };
 
-//Xóa bài viết
-export const deleteBaiViet = async (req, res) => {
+// Xóa thông báo
+export const deleteThongBao = async (req, res) => {
     try {
         const { id } = req.params;
-        const baiVietId = Number(id);
-        if (isNaN(baiVietId)) {
-            return res.status(400).json({ mess: "ID không hợp lệ" });
-        }
-        const existingBaiViet = await prisma.baiviet.findUnique({
+        const baiVietId = parseInt(id);
+        // Kiểm tra bài viết có tồn tại không
+        const existingBaiViet = await prisma.baiviet.findFirst({
             where: { id: baiVietId }
         });
         if (!existingBaiViet) {
             return res.status(404).json({ mess: "Bài viết không tồn tại" });
         }
+        // Xóa bài viết
         await prisma.baiviet.delete({
             where: { id: baiVietId }
         });
         return res.status(200).json({ mess: "Xóa bài viết thành công" });
     } catch (error) {
-        return res.status(500).json({ mess: "Thất bại !!!", error: error.message });
+        return res.status(500).json({ mess: "Thất Bại !!!", error: error.message });
     }
 };
 
-//Tìm kiếm bài viết theo tiêu đề
-export const searchBaiVietByTieuDe = async (req, res) => {
+//Tìm thong báo theo tiêu đề
+export const searchThongBaoByTieuDe = async (req, res) => {
     try {
         const { tieuDe } = req.query;
         if (!tieuDe) {
             return res.status(400).json({ mess: "Thiếu tiêu đề để tìm kiếm" });
         }
-        const data = await prisma.baiviet.findMany({
+        const data = await prisma.thongbao.findMany({
             where: {
-                tenBaiViet: {
+                tieuDe: {
                     contains: tieuDe,
-                    mode: 'insensitive' // Tìm kiếm không phân biệt chữ hoa chữ thường
+                    mode: 'insensitive' // Tìm kiếm không phân biệt chữ hoa thường
                 }
             }
         });
@@ -146,4 +130,4 @@ export const searchBaiVietByTieuDe = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ mess: "Thất Bại !!!", error: error.message });
     }
-}   
+};  
