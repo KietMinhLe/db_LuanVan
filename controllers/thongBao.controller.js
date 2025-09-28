@@ -1,4 +1,4 @@
-import prisma from "../models/primsa.model";
+import prisma from "../models/primsa.model.js";
 
 //Lây tất cả thông báo
 export const getAllThongBao = async (req, res) => {
@@ -14,11 +14,18 @@ export const getAllThongBao = async (req, res) => {
 export const getThongBaoById = async (req, res) => {
     try {
         const { id } = req.params
+
+        // Kiểm tra ID hợp lệ
+        if (!id || isNaN(id)) {
+            return res.status(400).json({ mess: "ID không hợp lệ hoặc không tồn tại" });
+        }
+
         const data = await prisma.thongbao.findUnique({
             where: {
                 id: parseInt(id)
             }
         });
+
         return res.status(200).json({ mess: "Thành Công", data: data });
     } catch (error) {
         return res.status(500).json({ mess: "Thất Bại !!!", error: error.message });

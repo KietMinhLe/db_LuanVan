@@ -15,6 +15,8 @@ model baiviet {
   tacGia      String    @db.VarChar(255)
   ngayTao     DateTime? @db.DateTime(0)
   ngayCapNhat DateTime? @db.DateTime(0)
+  danhmuc     danhmuc[]
+  sanpham     sanpham[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -24,16 +26,20 @@ model chitietdonhang {
   giaTien    Decimal @db.Decimal(10, 2)
   donHang_id Int
   sanPham_id Int
+  donhang    donhang @relation(fields: [donHang_id], references: [id], onDelete: Cascade, map: "fk_chitietdonhang_donhang")
+  sanpham    sanpham @relation(fields: [sanPham_id], references: [id], map: "fk_chitietdonhang_sanpham")
 
   @@index([donHang_id], map: "chiTietDonHang_index_8")
   @@index([sanPham_id], map: "chiTietDonHang_index_9")
 }
 
 model chitietsanpham {
-  id          Int       @id @default(autoincrement())
-  moTaChiTiet String?   @db.Text
-  ngayTao     DateTime? @db.DateTime(0)
-  ngayCapNhat DateTime? @db.DateTime(0)
+  id              Int               @id @default(autoincrement())
+  moTaChiTiet     String?           @db.Text
+  ngayTao         DateTime?         @db.DateTime(0)
+  ngayCapNhat     DateTime?         @db.DateTime(0)
+  hinhanh         hinhanh[]
+  sanpham_chitiet sanpham_chitiet[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -44,6 +50,8 @@ model danhgia {
   ngayTao      DateTime? @db.DateTime(0)
   khachHang_id Int
   sanPham_id   Int
+  khachhang    khachhang @relation(fields: [khachHang_id], references: [id], onDelete: Cascade, map: "fk_danhgia_khachhang")
+  sanpham      sanpham   @relation(fields: [sanPham_id], references: [id], onDelete: Cascade, map: "fk_danhgia_sanpham")
 
   @@index([khachHang_id], map: "danhGia_index_15")
   @@index([sanPham_id], map: "danhGia_index_16")
@@ -57,7 +65,9 @@ model danhmuc {
   trangThai   Boolean   @default(true)
   ngayTao     DateTime? @db.DateTime(0)
   ngayCapNhat DateTime? @db.DateTime(0)
-  baiViet_id  Int
+  baiViet_id  Int?
+  baiviet     baiviet?  @relation(fields: [baiViet_id], references: [id], map: "fk_danhmuc_baiviet")
+  sanpham     sanpham[]
 
   @@index([baiViet_id], map: "danhMuc_index_0")
 }
@@ -67,6 +77,8 @@ model danhsachyeuthich {
   sanPham_id   Int
   khachHang_id Int
   ngayTao      DateTime? @db.DateTime(0)
+  khachhang    khachhang @relation(fields: [khachHang_id], references: [id], onDelete: Cascade, map: "fk_danhsachyeuthich_khachhang")
+  sanpham      sanpham   @relation(fields: [sanPham_id], references: [id], onDelete: Cascade, map: "fk_danhsachyeuthich_sanpham")
 
   @@index([sanPham_id], map: "danhSachYeuThich_index_23")
   @@index([khachHang_id], map: "danhSachYeuThich_index_24")
@@ -74,16 +86,21 @@ model danhsachyeuthich {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model donhang {
-  id                     Int       @id @default(autoincrement())
-  maDonHang              String    @unique(map: "maDonHang")
-  tenNguoiDat            String    @db.VarChar(255)
-  soDienThoai            String    @db.VarChar(15)
-  diaChiNguoiDat         String    @db.VarChar(255)
-  trangThai              Boolean   @default(true)
-  ngayDat                DateTime? @db.DateTime(0)
-  ngayCapNhat            DateTime? @db.DateTime(0)
-  khachHang_id           Int
-  phuongThucThanhToan_id Int
+  id                     Int                  @id @default(autoincrement())
+  maDonHang              String               @unique(map: "maDonHang")
+  tenNguoiDat            String               @db.VarChar(255)
+  soDienThoai            String               @db.VarChar(15)
+  diaChiNguoiDat         String               @db.VarChar(255)
+  trangThai              Boolean              @default(true)
+  ngayDat                DateTime?            @db.DateTime(0)
+  ngayCapNhat            DateTime?            @db.DateTime(0)
+  khachHang_id           Int?
+  phuongThucThanhToan_id Int?
+  chitietdonhang         chitietdonhang[]
+  khachhang              khachhang?           @relation(fields: [khachHang_id], references: [id], map: "fk_donhang_khachhang")
+  phuongthucthanhtoan    phuongthucthanhtoan? @relation(fields: [phuongThucThanhToan_id], references: [id], map: "fk_donhang_phuongthucthanhtoan")
+  giaohangdonhang        giaohangdonhang[]
+  lichsu                 lichsu[]
 
   @@index([khachHang_id], map: "donHang_index_6")
   @@index([phuongThucThanhToan_id], map: "donHang_index_7")
@@ -91,15 +108,18 @@ model donhang {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model giamgia {
-  id           Int       @id @default(autoincrement())
-  soLuong      Int?      @default(0)
-  noiDung      String?   @db.Text
-  ngayTao      DateTime? @db.DateTime(0)
-  ngayCapNhat  DateTime? @db.DateTime(0)
-  trangThai    Boolean?  @default(true)
-  khachHang_id Int
-  sanPham_id   Int
-  maGiamGia_id Int
+  id           Int        @id @default(autoincrement())
+  soLuong      Int?       @default(0)
+  noiDung      String?    @db.Text
+  ngayTao      DateTime?  @db.DateTime(0)
+  ngayCapNhat  DateTime?  @db.DateTime(0)
+  trangThai    Boolean?   @default(true)
+  khachHang_id Int?
+  sanPham_id   Int?
+  maGiamGia_id Int?
+  khachhang    khachhang? @relation(fields: [khachHang_id], references: [id], map: "fk_giamgia_khachhang")
+  magiamgia    magiamgia? @relation(fields: [maGiamGia_id], references: [id], map: "fk_giamgia_magiamgia")
+  sanpham      sanpham?   @relation(fields: [sanPham_id], references: [id], map: "fk_giamgia_sanpham")
 
   @@index([khachHang_id], map: "giamGia_index_20")
   @@index([sanPham_id], map: "giamGia_index_21")
@@ -107,23 +127,28 @@ model giamgia {
 }
 
 model giaohangdonhang {
-  id                    Int      @id @default(autoincrement())
-  maVanDon              String?  @db.VarChar(100)
-  ngayGiao              DateTime @db.DateTime(0)
-  ngayNhan              DateTime @db.DateTime(0)
+  id                    Int                 @id @default(autoincrement())
+  maVanDon              String?             @db.VarChar(100)
+  ngayGiao              DateTime            @db.DateTime(0)
+  ngayNhan              DateTime            @db.DateTime(0)
   donHang_id            Int
-  phuongThucGiaoHang_id Int
+  phuongThucGiaoHang_id Int?
+  donhang               donhang             @relation(fields: [donHang_id], references: [id], onDelete: Cascade, map: "fk_giaohangdonhang_donhang")
+  phuongthucgiaohang    phuongthucgiaohang? @relation(fields: [phuongThucGiaoHang_id], references: [id], map: "fk_giaohangdonhang_phuongthucgiaohang")
 
   @@index([donHang_id], map: "giaoHangDonHang_index_25")
+  @@index([phuongThucGiaoHang_id], map: "giaoHangDonHang_index_26")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model giohang {
-  id           Int       @id @default(autoincrement())
-  trangThai    Boolean?  @default(true)
-  ngayTao      DateTime? @db.DateTime(0)
-  ngayCapNhat  DateTime? @db.DateTime(0)
+  id           Int            @id @default(autoincrement())
+  trangThai    Boolean?       @default(true)
+  ngayTao      DateTime?      @db.DateTime(0)
+  ngayCapNhat  DateTime?      @db.DateTime(0)
   khachHang_id Int
+  khachhang    khachhang      @relation(fields: [khachHang_id], references: [id], onDelete: Cascade, map: "fk_giohang_khachhang")
+  giohang_item giohang_item[]
 
   @@index([khachHang_id], map: "gioHang_index_17")
 }
@@ -135,6 +160,8 @@ model giohang_item {
   sanPham_id Int
   soLuong    Int
   giaTien    Decimal @db.Decimal(10, 2)
+  giohang    giohang @relation(fields: [gioHang_id], references: [id], onDelete: Cascade, map: "fk_giohangitem_giohang")
+  sanpham    sanpham @relation(fields: [sanPham_id], references: [id], map: "fk_giohangitem_sanpham")
 
   @@index([gioHang_id], map: "gioHang_item_index_18")
   @@index([sanPham_id], map: "gioHang_item_index_19")
@@ -142,16 +169,22 @@ model giohang_item {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model khachhang {
-  id           Int       @id @default(autoincrement())
-  tenKhachHang String    @db.VarChar(255)
-  taiKhoan     String    @unique(map: "taiKhoan")
-  matKhau      String    @db.VarChar(255)
-  soDienThoai  String    @unique(map: "soDienThoai") @db.VarChar(15)
-  email        String?   @db.VarChar(255)
-  diaChi       String    @db.VarChar(255)
-  ngayTao      DateTime? @db.DateTime(0)
-  ngayCapNhat  DateTime? @db.DateTime(0)
-  thongBao_id  Int
+  id               Int                @id @default(autoincrement())
+  tenKhachHang     String             @db.VarChar(255)
+  taiKhoan         String             @unique(map: "taiKhoan")
+  matKhau          String             @db.VarChar(255)
+  soDienThoai      String             @unique(map: "soDienThoai") @db.VarChar(15)
+  email            String?            @db.VarChar(255)
+  diaChi           String             @db.VarChar(255)
+  ngayTao          DateTime?          @db.DateTime(0)
+  ngayCapNhat      DateTime?          @db.DateTime(0)
+  thongBao_id      Int?
+  danhgia          danhgia[]
+  danhsachyeuthich danhsachyeuthich[]
+  donhang          donhang[]
+  giamgia          giamgia[]
+  giohang          giohang[]
+  thongbao         thongbao?          @relation(fields: [thongBao_id], references: [id], map: "fk_khachhang_thongbao")
 
   @@index([thongBao_id], map: "khachHang_index_5")
 }
@@ -164,6 +197,7 @@ model khohang {
   soDienThoai String    @db.VarChar(15)
   ngayTao     DateTime? @db.DateTime(0)
   ngayCapNhat DateTime? @db.DateTime(0)
+  tonkho      tonkho[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -174,6 +208,7 @@ model lichsu {
   moTa         String?  @db.Text
   thoiGian     DateTime @db.DateTime(0)
   donHang_id   Int
+  donhang      donhang  @relation(fields: [donHang_id], references: [id], onDelete: Cascade, map: "fk_lichsu_donhang")
 
   @@index([donHang_id], map: "lichSu_index_12")
 }
@@ -191,23 +226,26 @@ model magiamgia {
   trangThai      Boolean?  @default(true)
   ngayTao        DateTime? @db.DateTime(0)
   ngayCapNhat    DateTime? @db.DateTime(0)
+  giamgia        giamgia[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model nhanvien {
-  id             Int      @id @default(autoincrement())
-  tenNhanVien    String   @db.VarChar(255)
-  taiKhoan       String   @unique(map: "taiKhoan")
-  matKhau        String   @db.VarChar(255)
-  email          String   @db.VarChar(255)
-  soDienThoai    String   @unique(map: "soDienThoai") @db.VarChar(15)
-  diaChi         String   @db.VarChar(255)
-  vaiTro         String   @db.VarChar(50)
-  trangThai      Boolean  @default(true)
-  ngayTao        DateTime @db.DateTime(0)
-  ngayCapNhat    DateTime @db.DateTime(0)
-  quanTriVien_id Int
-  thongBao_id    Int
+  id             Int          @id @default(autoincrement())
+  tenNhanVien    String       @db.VarChar(255)
+  taiKhoan       String       @unique(map: "taiKhoan")
+  matKhau        String       @db.VarChar(255)
+  email          String       @db.VarChar(255)
+  soDienThoai    String       @unique(map: "soDienThoai") @db.VarChar(15)
+  diaChi         String       @db.VarChar(255)
+  vaiTro         String       @db.VarChar(50)
+  trangThai      Boolean      @default(true)
+  ngayTao        DateTime     @db.DateTime(0)
+  ngayCapNhat    DateTime     @db.DateTime(0)
+  quanTriVien_id Int?
+  thongBao_id    Int?
+  quantrivien    quantrivien? @relation(fields: [quanTriVien_id], references: [id], map: "fk_nhanvien_quantri")
+  thongbao       thongbao?    @relation(fields: [thongBao_id], references: [id], map: "fk_nhanvien_thongbao")
 
   @@index([quanTriVien_id], map: "nhanVien_index_13")
   @@index([thongBao_id], map: "nhanVien_index_14")
@@ -215,12 +253,13 @@ model nhanvien {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model phuongthucgiaohang {
-  id              Int      @id @default(autoincrement())
-  tenPhuongThuc   String   @db.VarChar(255)
-  moTa            String?  @db.Text
-  phiShip         Decimal? @default(0.00) @db.Decimal(10, 2)
-  thoiGianUocTinh String?  @db.VarChar(50)
-  trangThai       Boolean? @default(true)
+  id              Int               @id @default(autoincrement())
+  tenPhuongThuc   String            @db.VarChar(255)
+  moTa            String?           @db.Text
+  phiShip         Decimal?          @default(0.00) @db.Decimal(10, 2)
+  thoiGianUocTinh String?           @db.VarChar(50)
+  trangThai       Boolean?          @default(true)
+  giaohangdonhang giaohangdonhang[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -231,44 +270,58 @@ model phuongthucthanhtoan {
   trangThai     Boolean?  @default(true)
   ngayTao       DateTime? @db.DateTime(0)
   ngayCapNhat   DateTime? @db.DateTime(0)
+  donhang       donhang[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model quantrivien {
-  id          Int      @id @default(autoincrement())
-  tenTriVien  String   @db.VarChar(255)
-  taiKhoan    String   @unique(map: "taiKhoan")
-  matKhau     String   @db.VarChar(255)
-  email       String   @db.VarChar(255)
-  soDienThoai String   @unique(map: "soDienThoai") @db.VarChar(15)
-  diaChi      String   @db.VarChar(255)
-  vaiTro      String?  @db.VarChar(50)
-  trangThai   Boolean  @default(true)
-  ngayTao     DateTime @db.DateTime(0)
-  ngayCapNhat DateTime @db.DateTime(0)
+  id          Int        @id @default(autoincrement())
+  tenTriVien  String     @db.VarChar(255)
+  taiKhoan    String     @unique(map: "taiKhoan")
+  matKhau     String     @db.VarChar(255)
+  email       String     @db.VarChar(255)
+  soDienThoai String     @unique(map: "soDienThoai") @db.VarChar(15)
+  diaChi      String     @db.VarChar(255)
+  vaiTro      String?    @db.VarChar(50)
+  trangThai   Boolean    @default(true)
+  ngayTao     DateTime   @db.DateTime(0)
+  ngayCapNhat DateTime   @db.DateTime(0)
+  nhanvien    nhanvien[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model sanpham {
-  id             Int       @id @default(autoincrement())
-  tenSanPham     String    @db.VarChar(255)
-  moTaSanPham    String?   @db.Text
-  giaSanPham     Decimal   @db.Decimal(10, 2)
-  soLuongSanPham Int
-  trangThai      Boolean   @default(true)
-  ngayTao        DateTime? @db.DateTime(0)
-  ngayCapNhat    DateTime? @db.DateTime(0)
-  danhMuc_id     Int
-  baiViet_id     Int
+  id               Int                @id @default(autoincrement())
+  tenSanPham       String             @db.VarChar(255)
+  moTaSanPham      String?            @db.Text
+  giaSanPham       Decimal            @db.Decimal(10, 2)
+  soLuongSanPham   Int
+  trangThai        Boolean            @default(true)
+  ngayTao          DateTime?          @db.DateTime(0)
+  ngayCapNhat      DateTime?          @db.DateTime(0)
+  danhMuc_id       Int?
+  baiViet_id       Int?
+  chitietdonhang   chitietdonhang[]
+  danhgia          danhgia[]
+  danhsachyeuthich danhsachyeuthich[]
+  giamgia          giamgia[]
+  giohang_item     giohang_item[]
+  hinhanh          hinhanh[]
+  baiviet          baiviet?           @relation(fields: [baiViet_id], references: [id], map: "fk_sanpham_baiviet")
+  danhmuc          danhmuc?           @relation(fields: [danhMuc_id], references: [id], map: "fk_sanpham_danhmuc")
+  sanpham_chitiet  sanpham_chitiet[]
+  tonkho           tonkho[]
 
   @@index([danhMuc_id], map: "sanPham_index_1")
   @@index([baiViet_id], map: "sanPham_index_2")
 }
 
 model sanpham_chitiet {
-  id                Int @id @default(autoincrement())
+  id                Int            @id @default(autoincrement())
   sanPham_id        Int
   chiTietSanPham_id Int
+  chitietsanpham    chitietsanpham @relation(fields: [chiTietSanPham_id], references: [id], onDelete: Cascade, map: "fk_sanphamchitiet_chitietsanpham")
+  sanpham           sanpham        @relation(fields: [sanPham_id], references: [id], onDelete: Cascade, map: "fk_sanphamchitiet_sanpham")
 
   @@index([sanPham_id], map: "sanPham_chiTiet_index_10")
   @@index([chiTietSanPham_id], map: "sanPham_chiTiet_index_11")
@@ -276,11 +329,13 @@ model sanpham_chitiet {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model thongbao {
-  id           Int       @id @default(autoincrement())
-  denNguoiDung String    @db.VarChar(255)
-  tieuDe       String    @db.VarChar(255)
-  noiDung      String    @db.Text
-  ngayGui      DateTime? @db.DateTime(0)
+  id           Int         @id @default(autoincrement())
+  denNguoiDung String      @db.VarChar(255)
+  tieuDe       String      @db.VarChar(255)
+  noiDung      String      @db.Text
+  ngayGui      DateTime?   @db.DateTime(0)
+  khachhang    khachhang[]
+  nhanvien     nhanvien[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -300,4 +355,22 @@ model tonkho {
   khoHang_id  Int
   soLuongTon  Int
   ngayCapNhat DateTime? @db.DateTime(0)
+  khohang     khohang   @relation(fields: [khoHang_id], references: [id], onDelete: Cascade, map: "fk_tonkho_khohang")
+  sanpham     sanpham   @relation(fields: [sanPham_id], references: [id], onDelete: Cascade, map: "fk_tonkho_sanpham")
+
+  @@index([sanPham_id], map: "tonKho_index_27")
+  @@index([khoHang_id], map: "tonKho_index_28")
+}
+
+model hinhanh {
+  id                Int             @id @default(autoincrement())
+  ngayTao           DateTime?       @db.DateTime(0)
+  ngayCapNhat       DateTime?       @db.DateTime(0)
+  sanPham_id        Int?
+  chiTietSanPham_id Int?
+  chitietsanpham    chitietsanpham? @relation(fields: [chiTietSanPham_id], references: [id], onDelete: Cascade, map: "fk_hinhanh_chitietsanpham")
+  sanpham           sanpham?        @relation(fields: [sanPham_id], references: [id], onDelete: Cascade, map: "fk_hinhanh_sanpham")
+
+  @@index([sanPham_id], map: "hinhAnh_index_3")
+  @@index([chiTietSanPham_id], map: "hinhAnh_index_4")
 }
